@@ -15,11 +15,27 @@ namespace JobAgent.Api.Services
             _config = config;
         }
 
-        public async Task ApplyAsync(string jobUrl, string tailoredResumePath, string summary, List<string> bullets)
+        public async Task ApplyAsync(string jobUrl, string resumePath, string summary, List<string> bullets)
         {
-            await InitializeBrowserAsync();
-            await LoginAsync();
-            await NavigateToJobAndApply(jobUrl, tailoredResumePath, summary, bullets);
+            // 1. Check if browser is already initialized (Singleton pattern)
+            if (_page == null) await InitializeBrowserAsync();
+
+            // 2. Check login state
+            if (!_page.Url.Contains("linkedin.com/feed")) await LoginAsync();
+
+            // 3. Navigate to Job
+            await _page.GotoAsync(jobUrl, new() { WaitUntil = WaitUntilState.NetworkIdle });
+
+            // 4. Click Easy Apply (The most common failure point)
+            var applyButton = _page.Locator("button.jobs-apply-button").First;
+            if (await applyButton.IsVisibleAsync())
+            {
+                await applyButton.ClickAsync();
+            }
+            else
+            {
+                throw new Exception("Easy Apply button not found. It might be a regular application.");
+            }
         }
 
         private async Task InitializeBrowserAsync()

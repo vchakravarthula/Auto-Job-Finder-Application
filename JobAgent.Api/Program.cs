@@ -27,7 +27,7 @@ builder.Services.AddTransient<Kernel>(sp =>
 
 builder.Services.AddScoped<JobMatchService>();
 builder.Services.AddScoped<PdfGeneratorService>();
-builder.Services.AddScoped<IJobBoardActor, LinkedInActor>();
+builder.Services.AddSingleton<IJobBoardActor, LinkedInActor>();
 
 builder.Services.AddControllers(); // CRITICAL: Ensures JobController is discovered
 builder.Services.AddOpenApi();
